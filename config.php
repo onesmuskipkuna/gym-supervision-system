@@ -20,7 +20,7 @@ if ($conn->connect_error) {
 
 // SMS API configuration for textsms.co.ke
 define('SMS_API_URL', 'https://api.textsms.co.ke/api/v1/send');
-define('SMS_API_KEY', 'YOUR_TEXTSMS_API_KEY_HERE'); // Replace with your actual API key
+define('SMS_API_KEY', '84b2dfa58bcb25249883859dfc338c39'); // Updated with provided API key
 
 /**
  * Send SMS using textsms.co.ke API
@@ -48,6 +48,7 @@ function send_sms($to, $message) {
     if ($httpcode == 200) {
         return true;
     } else {
+        error_log("SMS sending failed to $to with response code $httpcode and response: $response");
         return false;
     }
 }
