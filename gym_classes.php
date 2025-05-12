@@ -119,11 +119,22 @@ if ($result) {
             </div>
             <div>
                 <label for="studio_location" class="block mb-2 font-semibold">Studio Location</label>
-                <input type="text" id="studio_location" name="studio_location" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white" />
+                <select id="studio_location" name="studio_location" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white">
+                    <option value="">Select Studio Location</option>
+                    <option value="Roof Top Studio">Roof Top Studio</option>
+                    <option value="Ladies Studio">Ladies Studio</option>
+                </select>
             </div>
             <div>
                 <label for="class_date" class="block mb-2 font-semibold">Class Date</label>
-                <input type="date" id="class_date" name="class_date" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white" />
+                <select id="class_date" name="class_date" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white">
+                    <option value="">Select Day</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                </select>
             </div>
             <div>
                 <label for="start_time" class="block mb-2 font-semibold">Start Time</label>
