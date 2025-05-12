@@ -23,6 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['name'], $_POST['phone
         $stmt->bind_param("sss", $name, $phone, $email);
         if ($stmt->execute()) {
             $success = 'Cleaning staff added successfully.';
+            // Send SMS notification to the new cleaning staff if phone number is provided
+            if (!empty($phone)) {
+                $message = "Hello $name, you have been added as cleaning staff at the gym. Please check your schedule.";
+                send_sms($phone, $message);
+            }
         } else {
             $error = 'Error adding staff: ' . $conn->error;
         }
