@@ -59,20 +59,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['machine_id'], $_POST[
             $message .= "Status: " . $status . "\n";
             $message .= "Remarks: " . $remarks . "\n";
 
-            // TODO: Fetch admin and maintenance staff emails and phone numbers from users or staff tables
-            // For now, use placeholders
-            $admin_email = "admin@example.com";
-            $maintenance_email = "maintenance@example.com";
-            $admin_phone = "1234567890";
-            $maintenance_phone = "0987654321";
+            // Fetch admin emails and phone numbers
+            $admin_emails = [];
+            $admin_phones = [];
+            $admin_result = $conn->query("SELECT email, phone FROM users u JOIN roles r ON u.role_id = r.id WHERE r.role_name = 'admin'");
+            if ($admin_result) {
+                while ($row = $admin_result->fetch_assoc()) {
+                    if (!empty($row['email'])) {
+                        $admin_emails[] = $row['email'];
+                    }
+                    if (!empty($row['phone'])) {
+                        $admin_phones[] = $row['phone'];
+                    }
+                }
+            }
+
+            // Fetch maintenance staff emails and phone numbers
+            $maintenance_emails = [];
+            $maintenance_phones = [];
+            $maintenance_result = $conn->query("SELECT email, phone FROM maintenance_staff");
+            if ($maintenance_result) {
+                while ($row = $maintenance_result->fetch_assoc()) {
+                    if (!empty($row['email'])) {
+                        $maintenance_emails[] = $row['email'];
+                    }
+                    if (!empty($row['phone'])) {
+                        $maintenance_phones[] = $row['phone'];
+                    }
+                }
+            }
 
             // Send email notifications
-            send_email_notification($admin_email, "Machine Status Update", $message);
-            send_email_notification($maintenance_email, "Machine Status Update", $message);
+            foreach ($admin_emails as $email) {
+                send_email_notification($email, "Machine Status Update", $message);
+            }
+            foreach ($maintenance_emails as $email) {
+                send_email_notification($email, "Machine Status Update", $message);
+            }
 
             // Send SMS notifications using send_sms function from config.php
-            send_sms($admin_phone, $message);
-            send_sms($maintenance_phone, $message);
+            foreach ($admin_phones as $phone) {
+                send_sms($phone, $message);
+            }
+            foreach ($maintenance_phones as $phone) {
+                send_sms($phone, $message);
+            }
 
             $success = 'Machine status updated and notifications sent.';
         } else {
