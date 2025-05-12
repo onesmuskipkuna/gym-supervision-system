@@ -128,29 +128,33 @@ if ($result) {
             <div class="bg-green-600 text-white p-3 rounded mb-4"><?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="admin_users.php" class="mb-6 space-y-4 max-w-md">
+        <form method="POST" action="admin_users.php" class="mb-6 space-y-4 max-w-md" x-data="adminUserForm()" @submit.prevent="submitForm">
             <div>
-                <label for="username" class="block mb-2 font-semibold">Username</label>
-                <input type="text" id="username" name="username" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white" />
+                <label for="username" class="block mb-2 font-semibold" x-tooltip="'Enter a unique username'">Username</label>
+                <input type="text" id="username" name="username" x-model="username" @input="validateUsername" :class="{'border-red-500': usernameError}" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white transition duration-300" />
+                <p x-show="usernameError" class="text-red-500 text-sm mt-1" x-text="usernameError"></p>
             </div>
             <div>
-                <label for="email" class="block mb-2 font-semibold">Email</label>
-                <input type="email" id="email" name="email" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white" />
+                <label for="email" class="block mb-2 font-semibold" x-tooltip="'Enter a valid email address'">Email</label>
+                <input type="email" id="email" name="email" x-model="email" @input="validateEmail" :class="{'border-red-500': emailError}" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white transition duration-300" />
+                <p x-show="emailError" class="text-red-500 text-sm mt-1" x-text="emailError"></p>
             </div>
             <div>
-                <label for="password" class="block mb-2 font-semibold">Password</label>
-                <input type="password" id="password" name="password" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white" />
+                <label for="password" class="block mb-2 font-semibold" x-tooltip="'Password must be at least 6 characters'">Password</label>
+                <input type="password" id="password" name="password" x-model="password" @input="validatePassword" :class="{'border-red-500': passwordError}" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white transition duration-300" />
+                <p x-show="passwordError" class="text-red-500 text-sm mt-1" x-text="passwordError"></p>
             </div>
             <div>
-                <label for="role_id" class="block mb-2 font-semibold">Role</label>
-                <select id="role_id" name="role_id" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white">
+                <label for="role_id" class="block mb-2 font-semibold" x-tooltip="'Select the user role'">Role</label>
+                <select id="role_id" name="role_id" x-model="role_id" @change="validateRole" :class="{'border-red-500': roleError}" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white transition duration-300">
                     <option value="">Select Role</option>
                     <?php foreach ($roles as $role): ?>
                         <option value="<?php echo $role['id']; ?>"><?php echo htmlspecialchars($role['role_name']); ?></option>
                     <?php endforeach; ?>
                 </select>
+                <p x-show="roleError" class="text-red-500 text-sm mt-1" x-text="roleError"></p>
             </div>
-            <button type="submit" class="bg-white text-black font-bold px-6 py-3 rounded hover:bg-gray-300 transition">Add User</button>
+            <button type="submit" :disabled="formHasErrors" class="bg-white text-black font-bold px-6 py-3 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed">Add User</button>
         </form>
 
             <table class="w-full text-left border-collapse border border-gray-700">
@@ -172,11 +176,24 @@ if ($result) {
                         <td class="p-3 border border-gray-700"><?php echo htmlspecialchars($user['role_name']); ?></td>
                         <td class="p-3 border border-gray-700">
                             <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                            <form method="POST" action="admin_users.php" onsubmit="return confirm('Are you sure you want to delete this user?');" class="inline">
-                                <input type="hidden" name="delete_user_id" value="<?php echo $user['id']; ?>" />
-                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
-                                <button type="submit" class="text-red-500 hover:underline">Delete</button>
-                            </form>
+                            <div x-data="{ showModal: false }" class="inline" x-tooltip="'Delete user'">
+                                <button @click="showModal = true" type="button" class="text-red-500 hover:underline transition duration-300 ease-in-out transform hover:scale-110">Delete</button>
+
+                                <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" style="display: none;">
+                                    <div class="bg-gray-900 p-6 rounded shadow-lg max-w-sm w-full">
+                                        <h2 class="text-lg font-semibold mb-4 text-white">Confirm Delete</h2>
+                                        <p class="mb-4 text-white">Are you sure you want to delete this user?</p>
+                                        <div class="flex justify-end space-x-4">
+                                            <button @click="showModal = false" type="button" class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 text-white transition duration-300 ease-in-out">Cancel</button>
+                                            <form method="POST" action="admin_users.php" class="inline">
+                                                <input type="hidden" name="delete_user_id" value="<?php echo $user['id']; ?>" />
+                                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
+                                                <button type="submit" class="px-4 py-2 bg-red-600 rounded hover:bg-red-700 text-white transition duration-300 ease-in-out">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <?php else: ?>
                                 <span class="text-gray-500">Current User</span>
                             <?php endif; ?>
@@ -191,5 +208,68 @@ if ($result) {
             </tbody>
         </table>
     </main>
+
+<script>
+function adminUserForm() {
+    return {
+        username: '',
+        email: '',
+        password: '',
+        role_id: '',
+        usernameError: '',
+        emailError: '',
+        passwordError: '',
+        roleError: '',
+        formHasErrors: true,
+
+        validateUsername() {
+            if (this.username.length < 3) {
+                this.usernameError = 'Username must be at least 3 characters.';
+            } else {
+                this.usernameError = '';
+            }
+            this.updateFormValidity();
+        },
+        validateEmail() {
+            const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+            if (!emailPattern.test(this.email)) {
+                this.emailError = 'Invalid email address.';
+            } else {
+                this.emailError = '';
+            }
+            this.updateFormValidity();
+        },
+        validatePassword() {
+            if (this.password.length < 6) {
+                this.passwordError = 'Password must be at least 6 characters.';
+            } else {
+                this.passwordError = '';
+            }
+            this.updateFormValidity();
+        },
+        validateRole() {
+            if (!this.role_id) {
+                this.roleError = 'Please select a role.';
+            } else {
+                this.roleError = '';
+            }
+            this.updateFormValidity();
+        },
+        updateFormValidity() {
+            this.formHasErrors = this.usernameError || this.emailError || this.passwordError || this.roleError;
+        },
+        submitForm() {
+            this.validateUsername();
+            this.validateEmail();
+            this.validatePassword();
+            this.validateRole();
+            if (!this.formHasErrors) {
+                this.$el.submit();
+            }
+        }
+    }
+}
+</script>
+
 </body>
 </html>
